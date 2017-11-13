@@ -17,6 +17,11 @@ parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpForm
 {
     "source": "onedrive:/Videos",
     "dest": "~/Videos/Onedrive"
+},
+{
+    "source": "onedrive:/private_folder",
+    "dest": "~/Private",
+    "umask": "077"
 }]
 ''')
 parser.add_argument('-c', '-o', '--conf', action='store',
@@ -28,6 +33,8 @@ parser.add_argument('-u', '--unmount', action='store_true',
 parser.add_argument('--max-read-ahead', action='store',
                     type=str, default='2G',
                     help='Max read ahead to pass to rclone')
+parser.add_argument('-d', '--debug', action='store_true',
+                    help='Debug output')
 
 
 def unmount(mount_path):
@@ -46,15 +53,19 @@ def unmount(mount_path):
         return True
 
 
-def mount(source, dest, read_ahead):
+def mount(source, dest, read_ahead, umask=None):
     """
     Mount path
     :param source: Source to mount
     :param dest: path to destination
+    :param read_ahead: pass to rclone
+    :param umask: pass to rclone
     :return:
     """
     dest = os.path.expanduser(dest)
     command = ('rclone', 'mount', source, dest, '--read-only', '--max-read-ahead', read_ahead)
+    if umask:
+        command = command + ('--umask='+umask,)
     subprocess.Popen(command)
     return
 
@@ -66,8 +77,15 @@ if __name__ == '__main__':
         for k, v in i.items():
             if k == 'dest':
                 v = os.path.expanduser(v)
+                if args.debug:
+                    print('Unmounting ', v)
                 unmount(v)
     if not args.unmount:
         for i in j:
-            print(i)
+            if args.debug:
+                if 'umask' in i.keys():
+                    extra = ' --umask={}'.format(i['umask'])
+                else:
+                    extra = ' '
+                print('running: rclone mount {source} {dest} --read-only '.format(**i) + '--max-read-ahead ' + args.max_read_ahead + extra)
             mount(read_ahead=args.max_read_ahead, **i)
