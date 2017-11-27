@@ -12,16 +12,19 @@ parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpForm
 
 [{
     "source": "gsuite:/videos/",
-    "dest": "~/Videos/Gsuite"
+    "dest": "~/Videos/Gsuite",
+    "read_only": true
 },
 {
     "source": "onedrive:/Videos",
-    "dest": "~/Videos/Onedrive"
+    "dest": "~/Videos/Onedrive",
+    "read_only": true
 },
 {
     "source": "onedrive:/private_folder",
     "dest": "~/Private",
-    "umask": "077"
+    "umask": "077",
+    "read_only": true
 }]
 ''')
 parser.add_argument('-c', '-o', '--conf', action='store',
@@ -53,19 +56,22 @@ def unmount(mount_path):
         return True
 
 
-def mount(source, dest, read_ahead, umask=None):
+def mount(source, dest, read_ahead, umask=None, read_only=True):
     """
     Mount path
     :param source: Source to mount
     :param dest: path to destination
     :param read_ahead: pass to rclone
     :param umask: pass to rclone
+    :param read_only: pass --read-only to rclone if True
     :return:
     """
     dest = os.path.expanduser(dest)
-    command = ('rclone', 'mount', source, dest, '--read-only', '--max-read-ahead', read_ahead)
+    command = ('rclone', 'mount', source, dest, '--max-read-ahead', read_ahead)
     if umask:
         command = command + ('--umask='+umask,)
+    if not read_only:
+        command = command + ('--read-only')
     subprocess.Popen(command)
     return
 
@@ -83,9 +89,11 @@ if __name__ == '__main__':
     if not args.unmount:
         for i in j:
             if args.debug:
-                if 'umask' in i.keys():
-                    extra = ' --umask={}'.format(i['umask'])
-                else:
-                    extra = ' '
-                print('running: rclone mount {source} {dest} --read-only '.format(**i) + '--max-read-ahead ' + args.max_read_ahead + extra)
+                extra = ''
+                if i.get('umask'):
+                    extra = extra + ' --umask={}'.format(i['umask'])
+                if i.get('read_only'):
+                    extra = extra + ' --read-only'
+                print('running: rclone mount {source} {dest} '.format(**i) + '--max-read-ahead '
+                      + args.max_read_ahead + extra)
             mount(read_ahead=args.max_read_ahead, **i)

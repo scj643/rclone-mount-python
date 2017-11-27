@@ -8,16 +8,19 @@ A config file must be made.
 ```
 [{
     "source": "gsuite:/videos/",
-    "dest": "~/Videos/Gsuite"
+    "dest": "~/Videos/Gsuite",
+    "read_only": true
 },
 {
     "source": "onedrive:/Videos",
-    "dest": "~/Videos/Onedrive"
+    "dest": "~/Videos/Onedrive",
+    "read_only": true
 },
 {
     "source": "onedrive:/private_folder",
     "dest": "~/Private",
-    "umask": "077"
+    "umask": "077",
+    "read_only": true
 }]
 ```
 
