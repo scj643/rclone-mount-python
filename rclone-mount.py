@@ -71,7 +71,7 @@ def mount(source, dest, read_ahead, umask=None, read_only=True):
     if umask:
         command = command + ('--umask='+umask,)
     if read_only:
-        command = command + ('--read-only')
+        command = command + ('--read-only',)
     subprocess.Popen(command)
     return
 
