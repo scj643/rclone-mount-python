@@ -70,7 +70,7 @@ def mount(source, dest, read_ahead, umask=None, read_only=True):
     command = ('rclone', 'mount', source, dest, '--max-read-ahead', read_ahead)
     if umask:
         command = command + ('--umask='+umask,)
-    if not read_only:
+    if read_only:
         command = command + ('--read-only')
     subprocess.Popen(command)
     return
